@@ -118,51 +118,53 @@ Lemma hdd_write_some_implies_valid_addr :
 Proof.
   intros.
   unfold hdd_write in H.
-  destruct (bvalid_sector_no sec) eqn:Hs; [| discriminate].
+  destruct (bvalid_sector_no sec) eqn:Hs;[| discriminate].
   trivial.
 Qed.
 
 (* ************* *********** *** *)
 (* flash device interface *)
 
+Definition bvalid_logical_block_no (lbn: block_no) := blt_nat lbn MAX_LOGICAL_BLOCKS.
+
 Definition lbn_off_to_lpn (lbn: block_no) (off: page_off) : nat := 
   lbn * PAGES_PER_BLOCK + off.
 
 (* Eval compute  in (10 /3 ). *)
 
-(* Definition lpn_to_lbn_off (lpn: nat) : prod block_no page_off := *)
-(*   (lpn /  PAGES_PER_BLOCK, lpn mod PAGES_PER_BLOCK). *)
+Definition lpn_to_lbn_off (lpn: nat) : prod block_no page_off :=
+  (lpn /  PAGES_PER_BLOCK, lpn mod PAGES_PER_BLOCK).
 
-(* Axiom addr_neq_trans_implies_neq :  *)
-(*   forall addr addr' lbn off lbn' off', *)
-(*     addr <> addr'  *)
-(*     -> lpn_to_lbn_off addr = (lbn, off) *)
-(*     -> lpn_to_lbn_off addr' = (lbn', off') *)
-(*     -> lbn <> lbn' \/ ((lbn = lbn') /\ off <> off'). *)
+Axiom addr_neq_trans_implies_neq :
+  forall addr addr' lbn off lbn' off',
+    addr <> addr'
+    -> lpn_to_lbn_off addr = (lbn, off)
+    -> lpn_to_lbn_off addr' = (lbn', off')
+    -> lbn <> lbn' \/ ((lbn = lbn') /\ off <> off').
 
-(* Axiom valid_lpn_implies_valid_off :  *)
-(*   forall addr lbn off, *)
-(*     bvalid_sector_no addr = true *)
-(*     -> lpn_to_lbn_off addr = (lbn, off) *)
-(*     -> bvalid_page_off off = true. *)
+Axiom valid_lpn_implies_valid_off :
+  forall addr lbn off,
+    bvalid_sector_no addr = true
+    -> lpn_to_lbn_off addr = (lbn, off)
+    -> bvalid_page_off off = true.
 
-(* Axiom valid_lpn_implies_valid_lbn :  *)
-(*   forall addr lbn off, *)
-(*     bvalid_sector_no addr = true *)
-(*     -> lpn_to_lbn_off addr = (lbn, off) *)
-(*     -> bvalid_logical_block_no lbn = true. *)
+Axiom valid_lpn_implies_valid_lbn :
+  forall addr lbn off,
+    bvalid_sector_no addr = true
+    -> lpn_to_lbn_off addr = (lbn, off)
+    -> bvalid_logical_block_no lbn = true.
 
-(* Axiom invalid_lpn_implies_valid_off :  *)
-(*   forall addr lbn off, *)
-(*     bvalid_sector_no addr = false *)
-(*     -> lpn_to_lbn_off addr = (lbn, off) *)
-(*     -> bvalid_page_off off = true. *)
+Axiom invalid_lpn_implies_valid_off :
+  forall addr lbn off,
+    bvalid_sector_no addr = false
+    -> lpn_to_lbn_off addr = (lbn, off)
+    -> bvalid_page_off off = true.
 
-(* Axiom invalid_lpn_implies_invalid_lbn :  *)
-(*   forall addr lbn off, *)
-(*     bvalid_sector_no addr = false *)
-(*     -> lpn_to_lbn_off addr = (lbn, off) *)
-(*     -> bvalid_logical_block_no lbn = false. *)
+Axiom invalid_lpn_implies_invalid_lbn :
+  forall addr lbn off,
+    bvalid_sector_no addr = false
+    -> lpn_to_lbn_off addr = (lbn, off)
+    -> bvalid_logical_block_no lbn = false.
 
 Definition flash_device := prod chip FTL.
 
@@ -176,11 +178,18 @@ Definition fld_write (fld: flash_device) (lpn: nat) (d: data) : option flash_dev
   do [c',f'] <-- FTL_write c f lpn d;
   ret (c',f').
 
-Definition fld_init : flash_device := (nand_init, ftl_init).
+(* Definition fld_init : flash_device := (nand_init, ftl_init). *)
+
+(* Definition fld_run (fld: flash_device) (cmd: command) (fld': flash_device) (bh: behav) : Prop := *)
+(*   match cmd with  *)
+(*     | cmd_read lpn => exists d, fld_read fld lpn = Some d /\ bh = bh_value d /\ fld' = fld *)
+(*     | cmd_write lpn d =>  *)
+(* fld_write fld lpn d = Some fld' /\ bh = bh_void *)
+(*   end. *)
 
 Definition fld_run (fld: flash_device) (cmd: command) (fld': flash_device) (bh: behav) : Prop :=
   match cmd with 
-    | cmd_read lpn => exists d, fld_read fld lpn = Some d /\ bh = bh_value d /\ fld' = fld
+    | cmd_read lpn => exists d, fld_read fld lpn = Some d /\ bh = bh_value d
     | cmd_write lpn d => 
 fld_write fld lpn d = Some fld' /\ bh = bh_void
   end.

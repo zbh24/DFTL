@@ -9,6 +9,8 @@
 (*           Hui Zhang <sa512073@mail.ustc.edu.cn>                            *)
 (*                                     School of Software Engineering, USTC   *)
 (*                                                                            *)
+(*           Bihong Zhang <sa614257@mail.ustc.edu.cn>                         *)
+(*                                     School of Software Engineering, USTC   *)
 (* ************************************************************************** *)
 
 Require Import String.
