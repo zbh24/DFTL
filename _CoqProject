@@ -1,3 +1,5 @@
+-R "." Top
+
 LibEx.v
 bnat.v
 ListEx.v
